@@ -447,12 +447,12 @@ class HomeController extends GetxController {
     }
   }
 
-  static Future<void> refreshData() async {
+  static Future<void> refreshData({bool fromAbsen = false}) async {
     isLoadingRefresh.value = true;
     try {
       await BerandaController.getDataJadwalHariIni();
       await BerandaController.getAbsenSiswa();
-      await getLocation();
+      await getLocation(fromAbsen: fromAbsen);
       GeoLocationService.handleLocationCheck(
         userLat: latitude.value ?? 0,
         userLon: longitude.value ?? 0,
@@ -480,7 +480,7 @@ class HomeController extends GetxController {
     }
   }
 
-  static Future<void> getLocation() async {
+  static Future<void> getLocation({bool fromAbsen = false}) async {
     isLoading.value = true;
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
@@ -509,8 +509,9 @@ class HomeController extends GetxController {
       isLoading.value = false;
       print("${userLocation.latitude} : ${userLocation.longitude}");
       await cekJenisAbsen(userLocation.latitude, userLocation.longitude);
-
-      await cekRadiusKoordinat(userLocation.latitude, userLocation.longitude);
+      if (!fromAbsen) {
+        await cekRadiusKoordinat(userLocation.latitude, userLocation.longitude);
+      }
     }
   }
 }

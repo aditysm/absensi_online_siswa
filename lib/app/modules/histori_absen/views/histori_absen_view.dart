@@ -320,7 +320,11 @@ class HistoriAbsenView extends GetView<HistoriAbsenController> {
             borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: EdgeInsets.symmetric(
-                  vertical: 8, horizontal: isImage && isClickable ? 10 : 0),
+                  vertical: 8,
+                  horizontal:
+                      (isImage && isClickable) || (!isImage && isClickable)
+                          ? 10
+                          : 0),
               decoration: BoxDecoration(
                 color: isClickable
                     ? colorScheme.primary.withOpacity(0.08)

@@ -186,7 +186,7 @@ class BuatAbsenController extends GetxController {
         Get.back();
 
         await BerandaController.getAbsenSiswa();
-        await HomeController.getLocation();
+        await HomeController.getLocation(fromAbsen: true);
         ToastService.show("Absensi berhasil dikirim!");
         HomeController.isLoading.value = false;
 

@@ -44,7 +44,6 @@ class BerandaController extends GetxController {
     }
   }
 
-
   static Future<void> getDataJadwalHariIni() async {
     if (HomeController.isLoading.isFalse) {
       HomeController.isLoading.value = true;

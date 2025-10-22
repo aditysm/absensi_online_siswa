@@ -49,285 +49,291 @@ class BerandaView extends GetView<BerandaController> {
               ),
             ),
             const SizedBox(height: 8),
-            Obx(() {
-              final canAbsen = HomeController.canAbsen.value;
-              final diluarRadius = HomeController.diluarRadius.value;
-              final jenisGeneral = HomeController.jenisAbsenGeneral.value;
-              final jadwal = BerandaController.jadwalHariIni.value;
+            Obx(
+              () {
+                final canAbsen = HomeController.canAbsen.value;
+                final diluarRadius = HomeController.diluarRadius.value;
+                final jenisGeneral = HomeController.jenisAbsenGeneral.value;
+                final jadwal = BerandaController.jadwalHariIni.value;
 
-              final now = DateTime.now();
-              final jamMasuk = parseTimeSafe(jadwal?.batasJamMasuk, now);
-              final jamPulang = parseTimeSafe(jadwal?.batasJamPulang, now);
+                final now = DateTime.now();
+                final jamMasuk = parseTimeSafe(jadwal?.batasJamMasuk, now);
+                final jamPulang = parseTimeSafe(jadwal?.batasJamPulang, now);
 
-              final sudahAbsenMasuk = BerandaController
-                      .jadwalTigaHari.firstOrNull?.absen?.statusAbsenMasuk !=
-                  null;
-              final sudahAbsenPulang = BerandaController
-                      .jadwalTigaHari.firstOrNull?.absen?.statusAbsenPulang !=
-                  null;
+                final sudahAbsenMasuk = BerandaController
+                        .jadwalTigaHari.firstOrNull?.absen?.statusAbsenMasuk !=
+                    null;
+                final sudahAbsenPulang = BerandaController
+                        .jadwalTigaHari.firstOrNull?.absen?.statusAbsenPulang !=
+                    null;
 
-              String label =
-                  "Absen ${jenisGeneral.isEmpty ? 'Sekarang' : jenisGeneral.capitalizeFirst!}";
-              String statusInfo = "";
+                String label =
+                    "Absen ${jenisGeneral.isEmpty ? 'Sekarang' : jenisGeneral.capitalizeFirst!}";
+                String statusInfo = "";
 
-              if (sudahAbsenMasuk && sudahAbsenPulang) {
-                statusInfo = "Anda sudah absen masuk & pulang hari ini.";
-              } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
-                statusInfo = HomeController.catatanAbsen.value;
-              } else if (sudahAbsenMasuk && now.isAfter(jamPulang)) {
-                statusInfo = "Waktunya absen pulang!";
-              } else if (now.isBefore(jamMasuk)) {
-                statusInfo = "Belum waktu absen masuk.";
-              } else if (now.isAfter(jamMasuk) && now.isBefore(jamPulang)) {
-                statusInfo =
-                    "Jam masuk sudah lewat, Anda akan tercatat sebagai telat.";
-              } else {
-                statusInfo = HomeController.catatanAbsen.value;
-              }
-
-              JenisAbsenEnum parseJenis(String jenis) {
-                switch (jenis.toLowerCase()) {
-                  case 'masuk':
-                    return JenisAbsenEnum.masuk;
-                  case 'pulang':
-                    return JenisAbsenEnum.pulang;
-                  case 'telat':
-                    return JenisAbsenEnum.telat;
-                  case 'izinorsakitordispensasi':
-                    return JenisAbsenEnum.izinOrSakitOrDispensasi;
-                  case 'izinorsakitordispensasiortelat':
-                    return JenisAbsenEnum.izinOrSakitOrDispensasiOrTelat;
-                  default:
-                    return JenisAbsenEnum.masuk;
-                }
-              }
-
-              bool bisaAbsenUtama = false;
-              bool bisaAbsenKecil = false;
-
-              if (!canAbsen) {
-                bisaAbsenUtama = false;
-                bisaAbsenKecil = false;
-              } else if (diluarRadius) {
-                bisaAbsenUtama = false;
-                bisaAbsenKecil = true;
-              } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
-                bisaAbsenUtama = false;
-                bisaAbsenKecil = true;
-              } else {
-                bisaAbsenUtama = true;
-                bisaAbsenKecil = true;
-              }
-
-              if (jenisGeneral.toLowerCase().contains('izin') ||
-                  jenisGeneral.toLowerCase().contains('sakit') ||
-                  jenisGeneral.toLowerCase().contains('dispensasi')) {
-                bisaAbsenUtama = false;
-                bisaAbsenKecil = canAbsen;
-              }
-
-              bool isSuccess = !diluarRadius && canAbsen;
-              bool isWarning = diluarRadius && canAbsen;
-              bool isError = !canAbsen || (diluarRadius && !canAbsen);
-
-              final dark = AllMaterial.isDarkMode.value;
-              Color bgColor;
-              Color borderColor;
-              Color iconColor;
-              Color textColor;
-              IconData iconData;
-
-              if (isSuccess) {
-                bgColor = dark
-                    ? Colors.green.withOpacity(0.15)
-                    : Colors.green.shade50;
-                borderColor = dark
-                    ? Colors.greenAccent.withOpacity(0.4)
-                    : Colors.green.shade200;
-                iconColor =
-                    dark ? Colors.greenAccent.shade100 : Colors.green.shade600;
-                textColor =
-                    dark ? Colors.greenAccent.shade100 : Colors.green.shade700;
-                iconData = Icons.check_circle_rounded;
-              } else if (isWarning) {
-                bgColor = dark
-                    ? Colors.amber.withOpacity(0.15)
-                    : Colors.amber.shade50;
-                borderColor = dark
-                    ? Colors.amberAccent.withOpacity(0.4)
-                    : Colors.amber.shade200;
-                iconColor =
-                    dark ? Colors.amberAccent.shade100 : Colors.amber.shade700;
-                textColor =
-                    dark ? Colors.amberAccent.shade100 : Colors.amber.shade800;
-                iconData = Icons.warning_amber_rounded;
-              } else {
-                bgColor =
-                    dark ? Colors.red.withOpacity(0.15) : Colors.red.shade50;
-                borderColor = dark
-                    ? Colors.redAccent.withOpacity(0.4)
-                    : Colors.red.shade200;
-                iconColor =
-                    dark ? Colors.redAccent.shade100 : Colors.red.shade600;
-                textColor =
-                    dark ? Colors.redAccent.shade100 : Colors.red.shade700;
-                iconData = Icons.error_outline_rounded;
-              }
-
-              String displayMsg = "";
-
-              if ((now.isAfter(jamPulang) && !sudahAbsenPulang) ||
-                  (now.isAfter(jamPulang) &&
-                      !sudahAbsenPulang &&
-                      !sudahAbsenMasuk)) {
-                displayMsg = statusInfo;
-              } else {
                 if (sudahAbsenMasuk && sudahAbsenPulang) {
-                  displayMsg =
-                      "Anda tidak dapat melakukan absen lagi.\n$statusInfo";
-                } else if (diluarRadius &&
-                    !canAbsen &&
-                    now.isBefore(jamPulang)) {
-                  displayMsg =
-                      "Anda berada di luar area absensi.\nSilakan mendekat ke lokasi yang ditentukan.";
-                } else if (diluarRadius && canAbsen) {
-                  displayMsg =
-                      "Anda berada di luar radius lokasi.\nNamun Anda masih dapat melakukan absen izin, sakit, atau dispensasi.";
-                } else if (!diluarRadius && canAbsen) {
-                  displayMsg = statusInfo;
-                } else if (!canAbsen) {
-                  displayMsg = HomeController.catatanAbsen.value;
+                  statusInfo = "Anda sudah absen masuk & pulang hari ini.";
+                } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
+                  statusInfo = HomeController.catatanAbsen.value;
+                } else if (sudahAbsenMasuk && now.isAfter(jamPulang)) {
+                  statusInfo = HomeController.catatanAbsen.value;
+                } else if (now.isBefore(jamMasuk)) {
+                  statusInfo = "Belum waktu absen masuk.";
+                } else if (now.isAfter(jamMasuk) && now.isBefore(jamPulang)) {
+                  statusInfo =
+                      "Jam masuk sudah lewat, Anda akan tercatat sebagai telat.";
+                } else {
+                  statusInfo = HomeController.catatanAbsen.value;
                 }
-              }
 
-              if (displayMsg.isEmpty) {
-                displayMsg = "Status absensi belum tersedia.";
-              }
+                JenisAbsenEnum parseJenis(String jenis) {
+                  switch (jenis.toLowerCase()) {
+                    case 'masuk':
+                      return JenisAbsenEnum.masuk;
+                    case 'pulang':
+                      return JenisAbsenEnum.pulang;
+                    case 'telat':
+                      return JenisAbsenEnum.telat;
+                    case 'izinorsakitordispensasi':
+                      return JenisAbsenEnum.izinOrSakitOrDispensasi;
+                    case 'izinorsakitordispensasiortelat':
+                      return JenisAbsenEnum.izinOrSakitOrDispensasiOrTelat;
+                    default:
+                      return JenisAbsenEnum.masuk;
+                  }
+                }
 
-              final mainButton = Tooltip(
-                message: statusInfo,
-                child: ElevatedButton.icon(
-                  onPressed: bisaAbsenUtama
-                      ? () {
-                          BuatAbsenController.selectedJenisAbsen.value =
-                              parseJenis(jenisGeneral);
-                          Get.to(() => const BuatAbsenView(), arguments: {
-                            "fromSmall": false,
-                            "jenisAbsen": jenisGeneral,
-                          });
-                        }
-                      : null,
-                  icon: const Icon(Icons.fingerprint_rounded, size: 22),
-                  label: Text(
-                    label,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    elevation: bisaAbsenUtama ? 3 : 0,
-                    backgroundColor: bisaAbsenUtama
-                        ? AppColors.lightPrimaryVariant
-                        : Colors.grey[400],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 14),
-                    fixedSize: Size.fromWidth(Get.width),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                ),
-              );
+                bool bisaAbsenUtama = false;
+                bool bisaAbsenKecil = false;
 
-              final smallButtons = Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildSmallButton(
-                    icon: Icons.assignment_turned_in_rounded,
-                    label: "Izin",
-                    active: bisaAbsenKecil,
-                    onTap: bisaAbsenKecil
+                if (!canAbsen) {
+                  bisaAbsenUtama = false;
+                  bisaAbsenKecil = false;
+                } else if (diluarRadius) {
+                  bisaAbsenUtama = false;
+                  bisaAbsenKecil = true;
+                } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
+                  bisaAbsenUtama = false;
+                  bisaAbsenKecil = true;
+                } else {
+                  bisaAbsenUtama = true;
+                  bisaAbsenKecil = true;
+                }
+
+                if (jenisGeneral.toLowerCase().contains('izin') ||
+                    jenisGeneral.toLowerCase().contains('sakit') ||
+                    jenisGeneral.toLowerCase().contains('dispensasi')) {
+                  bisaAbsenUtama = false;
+                  bisaAbsenKecil = canAbsen;
+                }
+
+                bool isSuccess = !diluarRadius && canAbsen;
+                bool isWarning = diluarRadius && canAbsen;
+                bool isError = !canAbsen || (diluarRadius && !canAbsen);
+
+                final dark = AllMaterial.isDarkMode.value;
+                Color bgColor;
+                Color borderColor;
+                Color iconColor;
+                Color textColor;
+                IconData iconData;
+
+                if (isSuccess) {
+                  bgColor = dark
+                      ? Colors.green.withOpacity(0.15)
+                      : Colors.green.shade50;
+                  borderColor = dark
+                      ? Colors.greenAccent.withOpacity(0.4)
+                      : Colors.green.shade200;
+                  iconColor = dark
+                      ? Colors.greenAccent.shade100
+                      : Colors.green.shade600;
+                  textColor = dark
+                      ? Colors.greenAccent.shade100
+                      : Colors.green.shade700;
+                  iconData = Icons.check_circle_rounded;
+                } else if (isWarning) {
+                  bgColor = dark
+                      ? Colors.amber.withOpacity(0.15)
+                      : Colors.amber.shade50;
+                  borderColor = dark
+                      ? Colors.amberAccent.withOpacity(0.4)
+                      : Colors.amber.shade200;
+                  iconColor = dark
+                      ? Colors.amberAccent.shade100
+                      : Colors.amber.shade700;
+                  textColor = dark
+                      ? Colors.amberAccent.shade100
+                      : Colors.amber.shade800;
+                  iconData = Icons.warning_amber_rounded;
+                } else {
+                  bgColor =
+                      dark ? Colors.red.withOpacity(0.15) : Colors.red.shade50;
+                  borderColor = dark
+                      ? Colors.redAccent.withOpacity(0.4)
+                      : Colors.red.shade200;
+                  iconColor =
+                      dark ? Colors.redAccent.shade100 : Colors.red.shade600;
+                  textColor =
+                      dark ? Colors.redAccent.shade100 : Colors.red.shade700;
+                  iconData = Icons.error_outline_rounded;
+                }
+
+                String displayMsg = "";
+
+                if ((now.isAfter(jamPulang) && !sudahAbsenPulang) ||
+                    (now.isAfter(jamPulang) &&
+                        !sudahAbsenPulang &&
+                        !sudahAbsenMasuk)) {
+                  displayMsg = statusInfo;
+                } else {
+                  if (sudahAbsenMasuk && sudahAbsenPulang) {
+                    displayMsg =
+                        "Anda tidak dapat melakukan absen lagi.\n$statusInfo";
+                  } else if (diluarRadius &&
+                      !canAbsen &&
+                      now.isBefore(jamPulang)) {
+                    displayMsg =
+                        "Anda berada di luar area absensi.\nSilakan mendekat ke lokasi yang ditentukan.";
+                  } else if (diluarRadius && canAbsen) {
+                    displayMsg =
+                        "Anda berada di luar radius lokasi.\nNamun Anda masih dapat melakukan absen izin, sakit, atau dispensasi.";
+                  } else if (!diluarRadius && canAbsen) {
+                    displayMsg = statusInfo;
+                  } else if (!canAbsen) {
+                    displayMsg = HomeController.catatanAbsen.value;
+                  }
+                }
+
+                if (displayMsg.isEmpty) {
+                  displayMsg = "Status absensi belum tersedia.";
+                }
+
+                final mainButton = Tooltip(
+                  message: statusInfo,
+                  child: ElevatedButton.icon(
+                    onPressed: bisaAbsenUtama
                         ? () {
                             BuatAbsenController.selectedJenisAbsen.value =
-                                JenisAbsenEnum.izinOrSakitOrDispensasi;
+                                parseJenis(jenisGeneral);
                             Get.to(() => const BuatAbsenView(), arguments: {
-                              "fromSmall": true,
-                              "jenisAbsen": "Izin",
+                              "fromSmall": false,
+                              "jenisAbsen": jenisGeneral,
                             });
                           }
                         : null,
-                  ),
-                  _buildSmallButton(
-                    icon: Icons.healing_rounded,
-                    label: "Sakit",
-                    active: bisaAbsenKecil,
-                    onTap: bisaAbsenKecil
-                        ? () {
-                            BuatAbsenController.selectedJenisAbsen.value =
-                                JenisAbsenEnum.izinOrSakitOrDispensasi;
-                            Get.to(() => const BuatAbsenView(), arguments: {
-                              "fromSmall": true,
-                              "jenisAbsen": "Sakit",
-                            });
-                          }
-                        : null,
-                  ),
-                  _buildSmallButton(
-                    icon: Icons.event_busy_rounded,
-                    label: "Dispensasi",
-                    active: bisaAbsenKecil,
-                    onTap: bisaAbsenKecil
-                        ? () {
-                            BuatAbsenController.selectedJenisAbsen.value =
-                                JenisAbsenEnum.izinOrSakitOrDispensasi;
-                            Get.to(() => const BuatAbsenView(), arguments: {
-                              "fromSmall": true,
-                              "jenisAbsen": "Dispensasi",
-                            });
-                          }
-                        : null,
-                  ),
-                ],
-              );
-
-              return Column(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    width: Get.width,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderColor),
+                    icon: const Icon(Icons.fingerprint_rounded, size: 22),
+                    label: Text(
+                      label,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(iconData, color: iconColor, size: 22),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            displayMsg,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.w600,
-                                height: 1.35),
+                    style: ElevatedButton.styleFrom(
+                      elevation: bisaAbsenUtama ? 3 : 0,
+                      backgroundColor: bisaAbsenUtama
+                          ? AppColors.lightPrimaryVariant
+                          : Colors.grey[400],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 14),
+                      fixedSize: Size.fromWidth(Get.width),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                );
+
+                final smallButtons = Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildSmallButton(
+                      icon: Icons.assignment_turned_in_rounded,
+                      label: "Izin",
+                      active: bisaAbsenKecil,
+                      onTap: bisaAbsenKecil
+                          ? () {
+                              BuatAbsenController.selectedJenisAbsen.value =
+                                  JenisAbsenEnum.izinOrSakitOrDispensasi;
+                              Get.to(() => const BuatAbsenView(), arguments: {
+                                "fromSmall": true,
+                                "jenisAbsen": "Izin",
+                              });
+                            }
+                          : null,
+                    ),
+                    _buildSmallButton(
+                      icon: Icons.healing_rounded,
+                      label: "Sakit",
+                      active: bisaAbsenKecil,
+                      onTap: bisaAbsenKecil
+                          ? () {
+                              BuatAbsenController.selectedJenisAbsen.value =
+                                  JenisAbsenEnum.izinOrSakitOrDispensasi;
+                              Get.to(() => const BuatAbsenView(), arguments: {
+                                "fromSmall": true,
+                                "jenisAbsen": "Sakit",
+                              });
+                            }
+                          : null,
+                    ),
+                    _buildSmallButton(
+                      icon: Icons.event_busy_rounded,
+                      label: "Dispensasi",
+                      active: bisaAbsenKecil,
+                      onTap: bisaAbsenKecil
+                          ? () {
+                              BuatAbsenController.selectedJenisAbsen.value =
+                                  JenisAbsenEnum.izinOrSakitOrDispensasi;
+                              Get.to(() => const BuatAbsenView(), arguments: {
+                                "fromSmall": true,
+                                "jenisAbsen": "Dispensasi",
+                              });
+                            }
+                          : null,
+                    ),
+                  ],
+                );
+
+                return Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      width: Get.width,
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(iconData, color: iconColor, size: 22),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              displayMsg,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.35),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildJadwalCard(context),
-                  const SizedBox(height: 10),
-                  mainButton,
-                  const SizedBox(height: 10),
-                  smallButtons,
-                ],
-              );
-            }),
+                    const SizedBox(height: 10),
+                    _buildJadwalCard(context),
+                    const SizedBox(height: 10),
+                    mainButton,
+                    const SizedBox(height: 5),
+                    smallButtons,
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 32),
             Text(
               "Histori Absen Terbaru",
@@ -471,11 +477,15 @@ class BerandaView extends GetView<BerandaController> {
                   "Jam Pulang", jadwal?.batasJamPulang ?? "Belum Ada", context),
               _fluentInfoRow("Dalam Radius",
                   HomeController.diluarRadius.value ? "Tidak" : "Ya", context),
-              if (HomeController.koordinatTerdekat.value?.namaTempat != "")
-                _fluentInfoRow(
-                    "Titik Lokasi",
-                    HomeController.koordinatTerdekat.value?.namaTempat ?? "",
-                    context),
+              Obx(
+                () => (HomeController.koordinatTerdekat.value?.namaTempat != "")
+                    ? _fluentInfoRow(
+                        "Titik Lokasi",
+                        HomeController.koordinatTerdekat.value?.namaTempat ??
+                            "",
+                        context)
+                    : SizedBox.shrink(),
+              ),
               if (HomeController.jarakTerdekatMeter.value != 0.0)
                 _fluentInfoRow(
                     "Jarak ke Lokasi",
