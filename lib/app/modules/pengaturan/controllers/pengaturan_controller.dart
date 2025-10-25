@@ -21,6 +21,7 @@ class PengaturanController extends GetxController {
 
     Future.microtask(() {
       Get.changeThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+      AllMaterial.box.write("themeMode", isDark ? "dark" : "light");
     });
   }
 }

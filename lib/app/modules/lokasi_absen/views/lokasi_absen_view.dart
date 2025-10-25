@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:absensi_smamahardhika/app/data/models/list_koordinat_lokasi.dart';
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/services/location_service.dart';
@@ -28,11 +30,22 @@ class LokasiAbsenView extends GetView<LokasiAbsenController> {
 
             final data = LokasiAbsenController.dataKoordinatLokasi;
             if (data.isEmpty) {
-              return ListView(children: [_buildEmptyState(context)]);
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return ListView(
+                    children: [
+                      SizedBox(
+                        height: constraints.maxHeight,
+                        child: _buildEmptyState(context),
+                      ),
+                    ],
+                  );
+                },
+              );
             }
 
             return Padding(
-              padding: EdgeInsets.only(bottom: 60),
+              padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -54,7 +67,7 @@ class LokasiAbsenView extends GetView<LokasiAbsenController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.location_off,
+          Icon(Icons.location_off_outlined,
               color: colorScheme.onSurface.withOpacity(0.4), size: 80),
           const SizedBox(height: 12),
           Text(

@@ -123,6 +123,12 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                             options = [
                               StatusAbsenMasukKeluarEnum.hadir,
                             ];
+                          } else if (!isDiluarRadius &&
+                              !fromSmall &&
+                              jenis.toLowerCase() == "telat") {
+                            options = [
+                              StatusAbsenMasukKeluarEnum.telat,
+                            ];
                           } else {
                             switch (jenis.toLowerCase()) {
                               case "masuk":
@@ -132,7 +138,6 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                                 ];
                                 break;
 
-                              case "telat":
                               case "izin":
                               case "sakit":
                               case "dispensasi":
@@ -185,7 +190,7 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
 
                           return DropdownButtonFormField<
                               StatusAbsenMasukKeluarEnum>(
-                            value: selectedValue,
+                            initialValue: selectedValue,
                             items: options
                                 .map(
                                   (e) => DropdownMenuItem(
@@ -224,11 +229,8 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                     ),
                     Obx(
                       () {
-                        final jenis = HomeController.jenisAbsen.value;
-
-                        if (jenis == "IzinOrSakitOrDispensasi" ||
-                            jenis == "IzinOrSakitOrDispensasiOrTelat" ||
-                            jenis == "Telat") {
+                        if (!_isJenisMasukAtauPulang(jenisAbsen) ||
+                            HomeController.diluarRadius.value) {
                           return _infoSection(
                             context,
                             title: 'Catatan',
@@ -259,7 +261,8 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                         }
                       },
                     ),
-                    if (_isJenisMasukAtauPulang(jenisAbsen)) ...[
+                    if (_isJenisMasukAtauPulang(jenisAbsen) &&
+                        !HomeController.diluarRadius.value) ...[
                       _infoSection(
                         context,
                         title: 'Upload Gambar',

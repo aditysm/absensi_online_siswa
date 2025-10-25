@@ -453,11 +453,6 @@ class HomeController extends GetxController {
       await BerandaController.getDataJadwalHariIni();
       await BerandaController.getAbsenSiswa();
       await getLocation(fromAbsen: fromAbsen);
-      GeoLocationService.handleLocationCheck(
-        userLat: latitude.value ?? 0,
-        userLon: longitude.value ?? 0,
-        placesFromServer: LokasiAbsenController.dataKoordinatLokasi,
-      );
     } catch (e) {
       print(e);
     } finally {
@@ -512,6 +507,12 @@ class HomeController extends GetxController {
       if (!fromAbsen) {
         await cekRadiusKoordinat(userLocation.latitude, userLocation.longitude);
       }
+
+      GeoLocationService.handleLocationCheck(
+        userLat: latitude.value ?? 0,
+        userLon: longitude.value ?? 0,
+        placesFromServer: LokasiAbsenController.dataKoordinatLokasi,
+      );
     }
   }
 }

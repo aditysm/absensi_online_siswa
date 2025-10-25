@@ -1,5 +1,7 @@
 // ignore_for_file: unused_local_variable
 
+import 'dart:io';
+
 import 'package:absensi_smamahardhika/app/data/models/list_data_absen_siswa_model.dart';
 import 'package:absensi_smamahardhika/app/modules/buat_absen/controllers/buat_absen_controller.dart';
 import 'package:absensi_smamahardhika/app/modules/buat_absen/views/buat_absen_view.dart';
@@ -32,6 +34,8 @@ class BerandaView extends GetView<BerandaController> {
             Obx(
               () => Text(
                 "Hai, ${HomeController.dataSiswa.value?.data?.nama ?? ""}",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -194,7 +198,7 @@ class BerandaView extends GetView<BerandaController> {
                       !canAbsen &&
                       now.isBefore(jamPulang)) {
                     displayMsg =
-                        "Anda berada di luar area absensi.\nSilakan mendekat ke lokasi yang ditentukan.";
+                        "Anda berada di luar area absensi.\nSilahkan mendekat ke lokasi yang ditentukan dan absen sesuai jam kerja.";
                   } else if (diluarRadius && canAbsen) {
                     displayMsg =
                         "Anda berada di luar radius lokasi.\nNamun Anda masih dapat melakukan absen izin, sakit, atau dispensasi.";
@@ -373,7 +377,7 @@ class BerandaView extends GetView<BerandaController> {
                 );
               },
             ),
-            SizedBox(height: 60),
+            SizedBox(height: Platform.isAndroid ? 60 : 100),
           ],
         ),
       ),

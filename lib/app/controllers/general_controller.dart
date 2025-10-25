@@ -17,10 +17,12 @@ class GeneralController extends GetxController {
       AllMaterial.refreshToken.value = "";
       AllMaterial.idSiswa.value = 0;
       HomeController.isLoadingFirst.value = false;
-      HomeController.selectedIndex.value = 0;
-      HomeController.onPageChanged(0);
-      HomeController.pageController.jumpToPage(0);
       HomeController.dataSiswa.value = null;
+      if (!autoLogout) {
+        HomeController.selectedIndex.value = 0;
+        HomeController.onPageChanged(0);
+        HomeController.pageController.jumpToPage(0);
+      }
     }
 
     if (autoLogout) {

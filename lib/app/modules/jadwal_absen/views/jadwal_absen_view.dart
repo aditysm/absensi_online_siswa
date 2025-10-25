@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:absensi_smamahardhika/app/data/models/list_data_jadwal_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,11 +27,22 @@ class JadwalAbsenView extends GetView<JadwalAbsenController> {
 
             final data = JadwalAbsenController.dataJadwal;
             if (data.isEmpty) {
-              return ListView(children: [_buildEmptyState(context)]);
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return ListView(
+                    children: [
+                      SizedBox(
+                        height: constraints.maxHeight,
+                        child: _buildEmptyState(context),
+                      ),
+                    ],
+                  );
+                },
+              );
             }
 
             return Padding(
-              padding: EdgeInsets.only(bottom: 60),
+              padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),

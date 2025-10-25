@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,7 +39,7 @@ class ProfilView extends GetView<ProfilController> {
           }
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 60),
+            padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [

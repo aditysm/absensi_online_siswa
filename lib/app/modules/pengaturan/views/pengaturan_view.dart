@@ -189,7 +189,7 @@ class PengaturanView extends GetView<PengaturanController> {
         title,
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
-      trailing: Switch.adaptive(value: value, onChanged: onChanged),
+      trailing: Switch(value: value, onChanged: onChanged),
       leading: Icon(icon, color: colorScheme.primary, size: 24),
     );
   }

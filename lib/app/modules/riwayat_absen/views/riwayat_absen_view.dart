@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:absensi_smamahardhika/app/data/models/list_data_absen_siswa_model.dart';
 import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +15,6 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
   Widget build(BuildContext context) {
     final controller = Get.put(RiwayatAbsenController());
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -28,34 +29,17 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
           }
 
           if (data.isEmpty) {
-            return ListView(
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.assignment_late,
-                          color: colorScheme.onSurface.withOpacity(0.4),
-                          size: 80),
-                      const SizedBox(height: 12),
-                      Text(
-                        "Belum ada histori absensi",
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.6),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Histori kehadiran Anda akan muncul di sini",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return ListView(
+                  children: [
+                    SizedBox(
+                      height: constraints.maxHeight,
+                      child: _buildEmptyState(context),
+                    ),
+                  ],
+                );
+              },
             );
           }
 
@@ -67,7 +51,7 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
           });
 
           return Padding(
-            padding: EdgeInsets.only(bottom: 60),
+            padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -77,6 +61,35 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
             ),
           );
         }),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.assignment_late_outlined,
+              color: colorScheme.onSurface.withOpacity(0.4), size: 80),
+          const SizedBox(height: 12),
+          Text(
+            "Belum ada histori absensi",
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.6),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Histori kehadiran Anda akan muncul di sini",
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
       ),
     );
   }
