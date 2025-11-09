@@ -338,46 +338,52 @@ class BerandaView extends GetView<BerandaController> {
                 );
               },
             ),
-            const SizedBox(height: 32),
-            Text(
-              "Histori Absen Terbaru",
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Obx(
-              () {
-                final riwayat = [...BerandaController.jadwalTigaHari];
-                if (riwayat.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text(
-                        "Belum ada data absen.",
-                        style: TextStyle(
-                          color: colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
+            if (BerandaController.jadwalTigaHari.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 32),
+                  Text(
+                    "Histori Absen Terbaru",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
-                  );
-                }
+                  ),
+                  const SizedBox(height: 12),
+                  Obx(
+                    () {
+                      final riwayat = [...BerandaController.jadwalTigaHari];
+                      if (riwayat.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text(
+                              "Belum ada data absen.",
+                              style: TextStyle(
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
 
-                riwayat.sort((a, b) {
-                  final aDate = a.absen?.tanggal ?? DateTime(1970);
-                  final bDate = b.absen?.tanggal ?? DateTime(1970);
-                  return bDate.compareTo(aDate);
-                });
+                      riwayat.sort((a, b) {
+                        final aDate = a.absen?.tanggal ?? DateTime(1970);
+                        final bDate = b.absen?.tanggal ?? DateTime(1970);
+                        return bDate.compareTo(aDate);
+                      });
 
-                return Column(
-                  children: riwayat
-                      .map((absen) => _buildRiwayatItem(context, absen))
-                      .toList(),
-                );
-              },
-            ),
-            SizedBox(height: Platform.isAndroid ? 60 : 100),
+                      return Column(
+                        children: riwayat
+                            .map((absen) => _buildRiwayatItem(context, absen))
+                            .toList(),
+                      );
+                    },
+                  ),
+                  SizedBox(height: Platform.isAndroid ? 60 : 100),
+                ],
+              ),
           ],
         ),
       ),
@@ -421,6 +427,10 @@ class BerandaView extends GetView<BerandaController> {
       () {
         final colorScheme = Theme.of(context).colorScheme;
         final jadwal = BerandaController.jadwalHariIni.value;
+        var isSpesial = (BerandaController.jadwalHariIni.value?.specialDay ??
+                false) &&
+            (BerandaController.jadwalHariIni.value?.specialDayName != null &&
+                BerandaController.jadwalHariIni.value?.specialDayName != "");
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -447,7 +457,9 @@ class BerandaView extends GetView<BerandaController> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.access_time_rounded,
+                      isSpesial
+                          ? Icons.celebration_outlined
+                          : Icons.access_time_rounded,
                       color: colorScheme.primary,
                       size: 20,
                     ),
@@ -456,7 +468,7 @@ class BerandaView extends GetView<BerandaController> {
                   Expanded(
                     child: Obx(
                       () => Text(
-                        "Jadwal Absen ${BerandaController.jadwalHariIni.value?.hari ?? ""} ${(BerandaController.jadwalHariIni.value?.specialDay ?? false) && (BerandaController.jadwalHariIni.value?.specialDayName != null && BerandaController.jadwalHariIni.value?.specialDayName != "") ? "-${BerandaController.jadwalHariIni.value?.specialDayName}" : ""}",
+                        "Jadwal Absen ${BerandaController.jadwalHariIni.value?.hari ?? ""} ${isSpesial ? "-${BerandaController.jadwalHariIni.value?.specialDayName}" : ""}",
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

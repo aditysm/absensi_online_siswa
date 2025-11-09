@@ -66,7 +66,7 @@ class PengaturanView extends GetView<PengaturanController> {
             _settingTile(context,
                 icon: Icons.update_outlined,
                 title: "Cek Pembaruan",
-                subtitle: "Versi terbaru dari Esensi Online Siswa",
+                subtitle: "Versi terbaru dari Absensi Smahardhika",
                 onTap: () =>
                     ToastService.show("Belum ada pembaruan tersedia.")),
             _settingTile(

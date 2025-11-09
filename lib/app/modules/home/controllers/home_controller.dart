@@ -55,6 +55,16 @@ class HomeController extends GetxController {
     await getDataSiswa();
     await BerandaController.getAbsenSiswa();
     await BerandaController.getDataJadwalHariIni();
+    if (isLoadingFirst.value) {
+      isLoadingFirst.value = false;
+    }
+
+    ever(HomeController.selectedIndex, (int index) {
+      if (RiwayatAbsenController.isFiltering.value && index != 3) {
+        RiwayatAbsenController.resetFilter();
+      }
+    });
+
     super.onInit();
   }
 
@@ -71,7 +81,8 @@ class HomeController extends GetxController {
         BerandaController.jadwalHariIni.value = null;
         BerandaController.jadwalTigaHari.clear();
         JadwalAbsenController.dataJadwal.clear();
-        RiwayatAbsenController.dataAbsenSiswa.clear();
+        RiwayatAbsenController.filteredData.clear();
+        RiwayatAbsenController.paginatedData.clear();
 
         ta.value = AllMaterial.selectedTahun.value;
       }
@@ -104,11 +115,18 @@ class HomeController extends GetxController {
         break;
 
       case 2:
-        if (RiwayatAbsenController.dataAbsenSiswa.isEmpty) {
+        if (LokasiAbsenController.dataKoordinatLokasi.isEmpty) {
+          await LokasiAbsenController.getKoordinatLokasi();
+        }
+
+      case 3:
+        if (RiwayatAbsenController.paginatedData.isEmpty ||
+            RiwayatAbsenController.filteredData.isEmpty) {
           await RiwayatAbsenController.getAbsenSiswa();
         }
+
         break;
-      case 3:
+      case 4:
         if (HomeController.dataSiswa.value == null) {
           await HomeController.getDataSiswa();
         }
@@ -200,7 +218,6 @@ class HomeController extends GetxController {
       }
     } catch (e) {
       print(e);
-    } finally {
       isLoading.value = false;
     }
   }

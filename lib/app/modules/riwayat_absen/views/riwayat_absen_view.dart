@@ -18,65 +18,88 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: controller.onRefreshData,
-        color: colorScheme.primary,
-        child: Obx(() {
-          final data = RiwayatAbsenController.dataAbsenSiswa;
+          onRefresh: controller.onRefreshData,
+          color: colorScheme.primary,
+          child: Obx(() {
+            final data = RiwayatAbsenController.isFiltering.value
+                ? RiwayatAbsenController.filteredData
+                : RiwayatAbsenController.paginatedData;
 
-          if (RiwayatAbsenController.isLoadingFirst.value ||
-              RiwayatAbsenController.isLoading.value) {
-            return _buildSkeletonList(context);
-          }
+            if (RiwayatAbsenController.isLoadingFirst.value && data.isEmpty) {
+              return _buildSkeletonList(context);
+            }
 
-          if (data.isEmpty) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                return ListView(
-                  children: [
-                    SizedBox(
-                      height: constraints.maxHeight,
-                      child: _buildEmptyState(context),
-                    ),
-                  ],
-                );
+            if (data.isEmpty) {
+              return ListView(
+                children: [
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: _buildEmptyState(context)),
+                ],
+              );
+            }
+
+            final sortedData = [...data];
+            sortedData.sort((a, b) {
+              final aDate = a.absen?.tanggal ?? DateTime(1970);
+              final bDate = b.absen?.tanggal ?? DateTime(1970);
+              return bDate.compareTo(aDate);
+            });
+
+            return NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (!RiwayatAbsenController.isFiltering.value &&
+                    RiwayatAbsenController.hasMore.value &&
+                    !RiwayatAbsenController.isLoading.value &&
+                    scrollInfo.metrics.pixels ==
+                        scrollInfo.metrics.maxScrollExtent) {
+                  RiwayatAbsenController.getAbsenSiswa();
+                }
+                return false;
               },
+              child: Padding(
+                padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  itemCount: sortedData.length +
+                      (RiwayatAbsenController.hasMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index < sortedData.length) {
+                      return _buildRiwayatItem(context, sortedData[index]);
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
             );
-          }
-
-          final sortedData = [...data];
-          sortedData.sort((a, b) {
-            final aDate = a.absen?.tanggal ?? DateTime(1970);
-            final bDate = b.absen?.tanggal ?? DateTime(1970);
-            return bDate.compareTo(aDate);
-          });
-
-          return Padding(
-            padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-              itemCount: sortedData.length,
-              itemBuilder: (context, index) =>
-                  _buildRiwayatItem(context, sortedData[index]),
-            ),
-          );
-        }),
-      ),
+          })),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isFilter = RiwayatAbsenController.isFiltering.value;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_late_outlined,
+          Icon(Icons.assignment_outlined,
               color: colorScheme.onSurface.withOpacity(0.4), size: 80),
           const SizedBox(height: 12),
           Text(
-            "Belum ada histori absensi",
+            isFilter
+                ? "Histori absen tidak ditemukan"
+                : "Belum ada histori absensi",
             style: textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.6),
               fontWeight: FontWeight.w500,
@@ -84,7 +107,9 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Histori kehadiran Anda akan muncul di sini",
+            isFilter
+                ? "Coba cari lagi dengan kata kunci lain"
+                : "Histori kehadiran Anda akan muncul di sini",
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),

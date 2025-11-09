@@ -1,5 +1,6 @@
 import 'package:absensi_smamahardhika/app/modules/jadwal_absen/views/jadwal_absen_view.dart';
 import 'package:absensi_smamahardhika/app/modules/lokasi_absen/views/lokasi_absen_view.dart';
+import 'package:absensi_smamahardhika/app/modules/riwayat_absen/controllers/riwayat_absen_controller.dart';
 import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
 import 'package:flutter/material.dart';
@@ -101,11 +102,38 @@ class HomeView extends GetView<HomeController> {
                 ],
               ),
               actions: [
-                //   IconButton(
-                //     icon: const Icon(Icons.filter_alt_outlined),
-                //     onPressed: () {},
-                //     tooltip: 'Filter Riwayat',
-                //   ),
+                if (HomeController.selectedIndex.value == 3)
+                  Obx(() => Stack(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.filter_alt_outlined),
+                            onPressed: () =>
+                                RiwayatAbsenController.openFilterDialog(
+                                    context),
+                          ),
+                          if (RiwayatAbsenController.activeFilterCount.value >
+                              0)
+                            Positioned(
+                              right: 6,
+                              top: 6,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  RiwayatAbsenController.activeFilterCount.value
+                                      .toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      )),
                 Obx(() {
                   final sortedKeys = HomeController.dataTahun.keys.toList()
                     ..sort((a, b) => b.compareTo(a));
@@ -183,7 +211,6 @@ class HomeView extends GetView<HomeController> {
                     },
                   );
                 }),
-
                 if (HomeController.selectedIndex.value == 4)
                   IconButton(
                     icon: const Icon(Icons.settings_outlined),

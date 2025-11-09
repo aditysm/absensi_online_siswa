@@ -63,7 +63,7 @@ class TentangAplikasiView extends GetView<TentangAplikasiController> {
                 context,
                 icon: Icons.developer_mode,
                 title: "Pengembang",
-                subtitle: "Tim Pengembang Global Vintage Numeration",
+                subtitle: "Tim Pengembang CV. Bale Kotak GVINUM",
               ),
               _infoTile(
                 context,

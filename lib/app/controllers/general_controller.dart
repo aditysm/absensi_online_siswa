@@ -21,6 +21,7 @@ class GeneralController extends GetxController {
       if (!autoLogout) {
         HomeController.selectedIndex.value = 0;
         HomeController.onPageChanged(0);
+        await Future.delayed(const Duration(milliseconds: 400));
         HomeController.pageController.jumpToPage(0);
       }
     }

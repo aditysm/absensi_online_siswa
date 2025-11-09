@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -465,8 +464,6 @@ abstract class AllMaterial {
     );
   }
 
-  
-
   static Widget textField({
     FocusNode? focusNode,
     String? hintText,
@@ -665,21 +662,69 @@ abstract class AllMaterial {
     }
   }
 
-  static Future<LocationData?> getCurrentLocation() async {
-    // ignore: no_leading_underscores_for_local_identifiers
-    final Location _location = Location();
-    bool serviceEnabled = await _location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await _location.requestService();
-      if (!serviceEnabled) return null;
-    }
-
-    PermissionStatus permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return null;
-    }
-
-    return await _location.getLocation();
+  static void openFilterDialog({
+    required BuildContext context,
+    required List<Widget> items,
+    void Function()? onApply,
+    void Function()? onReset,
+    String? title,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Filter $title",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      TextButton(
+                        child: Text("Reset"),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onReset?.call();
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 32),
+                  ...items,
+                  SizedBox(height: 32),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      fixedSize:
+                          Size(Get.width, context.theme.buttonTheme.height + 5),
+                    ),
+                    onPressed: onApply == null
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                            onApply.call();
+                          },
+                    child: const Text('Terapkan Filter'),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

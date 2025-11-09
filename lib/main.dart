@@ -13,6 +13,7 @@ import 'package:absensi_smamahardhika/app/utils/app_theme.dart';
 import 'package:absensi_smamahardhika/app/utils/loading_splash.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -39,12 +40,17 @@ void main() async {
   PengaturanController.toggleDarkMode(
       AllMaterial.box.read("isDarkMode") ?? false);
 
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   runApp(
     Obx(
       () => GetMaterialApp(
         themeMode: AllMaterial.themeMode.value,
         debugShowCheckedModeBanner: false,
-        title: "Esensi Online Siswa",
+        title: "Absensi Smahardhika",
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: const NoAlwaysScrollableBehavior(),
@@ -55,19 +61,26 @@ void main() async {
           title: "Tunggu Sebentar!",
           animationAsset: 'assets/images/loading.json',
           onCompleted: () async {
-            bool serviceEnabled = await locationService.serviceEnabled();
             PermissionStatus permissionGranted =
                 await locationService.hasPermission();
 
-            if (!serviceEnabled) {
-              _showEnableLocationSheet();
-              return;
-            }
-
             if (permissionGranted == PermissionStatus.denied ||
                 permissionGranted == PermissionStatus.deniedForever) {
-              _showPermissionSheet();
-              return;
+              permissionGranted = await locationService.requestPermission();
+
+              if (permissionGranted != PermissionStatus.granted) {
+                _showPermissionSheet();
+                return;
+              }
+            }
+
+            bool serviceEnabled = await locationService.serviceEnabled();
+            if (!serviceEnabled) {
+              serviceEnabled = await locationService.requestService();
+              if (!serviceEnabled) {
+                _showEnableLocationSheet();
+                return;
+              }
             }
 
             await checkAuth();
@@ -118,7 +131,6 @@ void _showEnableLocationSheet() {
     Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(

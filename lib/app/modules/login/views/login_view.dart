@@ -58,7 +58,7 @@ class LoginView extends GetView<LoginController> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Selamat Datang di Esensi Online Siswa',
+                        'Selamat Datang di Absensi Smahardhika',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: Colors.white,

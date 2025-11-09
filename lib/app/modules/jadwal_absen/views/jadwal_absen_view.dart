@@ -13,6 +13,7 @@ class JadwalAbsenView extends GetView<JadwalAbsenController> {
   Widget build(BuildContext context) {
     final controller = Get.put(JadwalAbsenController());
     final colorScheme = Theme.of(context).colorScheme;
+    
 
     return Scaffold(
       body: RefreshIndicator(
