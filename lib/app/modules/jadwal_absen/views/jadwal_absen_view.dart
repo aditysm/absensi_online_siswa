@@ -13,7 +13,6 @@ class JadwalAbsenView extends GetView<JadwalAbsenController> {
   Widget build(BuildContext context) {
     final controller = Get.put(JadwalAbsenController());
     final colorScheme = Theme.of(context).colorScheme;
-    
 
     return Scaffold(
       body: RefreshIndicator(
@@ -77,7 +76,7 @@ class JadwalAbsenView extends GetView<JadwalAbsenController> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Jadwal absensi akan muncul di sini.",
+            "Jadwal absensi akan tampil di sini.",
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -265,6 +264,7 @@ class JadwalAbsenView extends GetView<JadwalAbsenController> {
             ),
             const SizedBox(height: 12),
             _fluentInfoRow("Jam Masuk", jadwal.batasJamMasuk ?? "-", context),
+            _fluentInfoRow("Batas Masuk", jadwal.maxJamMasuk ?? "-", context),
             _fluentInfoRow("Jam Pulang", jadwal.batasJamPulang ?? "-", context),
             _fluentInfoRow(
                 "Keterangan",

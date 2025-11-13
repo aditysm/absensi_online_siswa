@@ -15,7 +15,6 @@ abstract class ApiUrl {
   static var dataAbsenSiswaPaginatedUrl = "$url/api/siswa/pagined/absen";
   static var dataKoordinatLokasiUrl = "$url/api/siswa/koordinat";
   static var dataPostAbsenSiswaUrl = "$url/api/siswa/absen/action";
-  static var dataTahunAjaranUrl = "$url/api/siswa/tahun-ajaran";
   static var dataJadwalHariIniUrl = "$url/api/siswa/jadwal/get/today";
   static var dataJadwalAbsenUrl = "$url/api/siswa/jadwal";
   static var dataCekAbsenJadwalHariIniUrl = "$url/api/siswa/jadwal/cek";

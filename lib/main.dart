@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:absensi_smamahardhika/app/controllers/general_controller.dart';
 import 'package:absensi_smamahardhika/app/controllers/network_controller.dart';
 import 'package:absensi_smamahardhika/app/data/apis/api_url.dart';
@@ -45,6 +47,8 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   runApp(
     Obx(
       () => GetMaterialApp(
@@ -57,35 +61,37 @@ void main() async {
             child: child!,
           );
         },
-        home: LoadingSplashView(
-          title: "Tunggu Sebentar!",
-          animationAsset: 'assets/images/loading.json',
-          onCompleted: () async {
-            PermissionStatus permissionGranted =
-                await locationService.hasPermission();
-
-            if (permissionGranted == PermissionStatus.denied ||
-                permissionGranted == PermissionStatus.deniedForever) {
-              permissionGranted = await locationService.requestPermission();
-
-              if (permissionGranted != PermissionStatus.granted) {
-                _showPermissionSheet();
-                return;
-              }
-            }
-
-            bool serviceEnabled = await locationService.serviceEnabled();
-            if (!serviceEnabled) {
-              serviceEnabled = await locationService.requestService();
+        home: Builder(builder: (context) {
+          return LoadingSplashView(
+            title: "Tunggu Sebentar!",
+            animationAsset: 'assets/images/loading.json',
+            onCompleted: () async {
+              bool serviceEnabled = await locationService.serviceEnabled();
               if (!serviceEnabled) {
-                _showEnableLocationSheet();
+                serviceEnabled = await locationService.requestService();
+                if (!serviceEnabled) {
+                  _showEnableLocationSheet(context);
+                  return;
+                }
+              }
+
+              PermissionStatus permissionGranted =
+                  await locationService.hasPermission();
+              if (permissionGranted == PermissionStatus.denied) {
+                permissionGranted = await locationService.requestPermission();
+                if (permissionGranted != PermissionStatus.granted) {
+                  _showPermissionSheet(context);
+                  return;
+                }
+              } else if (permissionGranted == PermissionStatus.deniedForever) {
+                _showPermissionSheet(context);
                 return;
               }
-            }
 
-            await checkAuth();
-          },
-        ),
+              await checkAuth(context);
+            },
+          );
+        }),
         defaultTransition: Transition.cupertino,
         transitionDuration: const Duration(milliseconds: 350),
         getPages: AppPages.routes,
@@ -96,14 +102,14 @@ void main() async {
   );
 }
 
-Future<void> checkAuth() async {
+Future<void> checkAuth(BuildContext context) async {
   final token = AllMaterial.box.read("token");
   if (token != null) {
     int? statusCode;
     var response = await HttpService.request(
       url: ApiUrl.dataSiswaUrl,
       type: RequestType.get,
-      onError: (error) => print(error),
+      onError: (error) => _showErrorBuilderSheet(context),
       onStuck: (error) => print(error),
       showLoading: false,
       onStatus: (code) async {
@@ -112,6 +118,8 @@ Future<void> checkAuth() async {
           await GeneralController.logout(autoLogout: true);
           ToastService.show("Sesi habis, silahkan login kembali!");
           Get.offAll(() => LoginView());
+        } else if (code == 403) {
+          _showErrorBuilderSheet(context);
         }
       },
     );
@@ -123,14 +131,20 @@ Future<void> checkAuth() async {
   } else {
     Get.offAll(() => LoginView());
   }
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: SystemUiOverlay.values,
+  );
+  await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
 }
 
-void _showEnableLocationSheet() {
+void _showEnableLocationSheet(BuildContext context) {
   Get.bottomSheet(
     isDismissible: false,
     Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -144,7 +158,7 @@ void _showEnableLocationSheet() {
           ),
           const SizedBox(height: 6),
           const Text(
-            "Silakan aktifkan layanan lokasi agar aplikasi dapat berjalan dengan baik.",
+            "Silahkan aktifkan layanan lokasi agar aplikasi dapat berjalan dengan baik.",
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -158,7 +172,7 @@ void _showEnableLocationSheet() {
                     title: "Memuat...",
                     animationAsset: 'assets/images/loading.json',
                     onCompleted: () async {
-                      await checkAuth();
+                      await checkAuth(context);
                     },
                   ),
                 );
@@ -173,13 +187,53 @@ void _showEnableLocationSheet() {
   );
 }
 
-void _showPermissionSheet() {
+void _showErrorBuilderSheet(BuildContext context) {
+  Get.bottomSheet(
+    isDismissible: false,
+    Container(
+      width: Get.width,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.mobile_off_sharp, size: 48, color: Colors.redAccent),
+          const SizedBox(height: 10),
+          const Text(
+            "Terjadi Kesalahan Tidak Diketahui",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "Silahkan tutup aplikasi dan coba lagi.",
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              AllMaterial.executeExit();
+              GeneralController.logout(autoLogout: true);
+            },
+            child: const Text("Keluar Aplikasi"),
+          ),
+        ],
+      ),
+    ),
+    isScrollControlled: true,
+    enableDrag: false,
+  );
+}
+
+void _showPermissionSheet(BuildContext context) {
   Get.bottomSheet(
     isDismissible: false,
     Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -200,7 +254,7 @@ void _showPermissionSheet() {
           ElevatedButton(
             onPressed: () async {
               await openAppSettings();
-              ToastService.show("Silakan aktifkan izin lokasi di pengaturan.");
+              ToastService.show("Silahkan aktifkan izin lokasi di pengaturan.");
             },
             child: const Text("Buka Pengaturan"),
           ),

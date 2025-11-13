@@ -29,7 +29,7 @@ abstract class AppTheme {
       labelLarge:
           TextStyle(color: AppColors.lightPrimary, fontWeight: FontWeight.w600),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       color: AppColors.lightSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 1.5,
@@ -103,7 +103,7 @@ abstract class AppTheme {
       labelLarge:
           TextStyle(color: AppColors.darkPrimary, fontWeight: FontWeight.w600),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       color: AppColors.darkSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,

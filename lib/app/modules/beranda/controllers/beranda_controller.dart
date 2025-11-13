@@ -5,6 +5,7 @@ import 'package:absensi_smamahardhika/app/data/models/list_data_absen_siswa_mode
 import 'package:absensi_smamahardhika/app/data/models/list_data_jadwal_model.dart';
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/services/http_service.dart';
+import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:get/get.dart';
 
 class BerandaController extends GetxController {
@@ -18,7 +19,7 @@ class BerandaController extends GetxController {
     try {
       final response = await HttpService.request(
         url:
-            "${ApiUrl.dataAbsenSiswaUrl}?id_tahun=${HomeController.idTahun.value}&today=true",
+            "${ApiUrl.dataAbsenSiswaUrl}?id_tahun=${AllMaterial.idSelectedTahun}&today=true",
         type: RequestType.get,
         onError: (error) {
           print(error);
@@ -30,13 +31,11 @@ class BerandaController extends GetxController {
       );
 
       if (response != null && response['data'] != null) {
-        if (response != null && response['data'] != null) {
-          final list = (response['data'] as List)
-              .map((e) => AbsenSiswaModel.fromJson(e))
-              .toList();
+        final list = (response['data'] as List)
+            .map((e) => AbsenSiswaModel.fromJson(e))
+            .toList();
 
-          jadwalTigaHari.assignAll(list);
-        }
+        jadwalTigaHari.assignAll(list);
       }
     } catch (e) {
       print(e);
@@ -50,7 +49,8 @@ class BerandaController extends GetxController {
     }
     try {
       final response = await HttpService.request(
-        url: ApiUrl.dataJadwalHariIniUrl,
+        url:
+            "${ApiUrl.dataJadwalHariIniUrl}?id_tahun_ajaran=${AllMaterial.idSelectedTahun.value}",
         type: RequestType.get,
         onError: (error) {
           print(error);

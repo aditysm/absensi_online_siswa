@@ -7,6 +7,7 @@ import 'package:absensi_smamahardhika/app/modules/buat_absen/controllers/buat_ab
 import 'package:absensi_smamahardhika/app/modules/buat_absen/views/buat_absen_view.dart';
 import 'package:absensi_smamahardhika/app/modules/histori_absen/views/histori_absen_view.dart';
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
+import 'package:absensi_smamahardhika/app/modules/lokasi_absen/controllers/lokasi_absen_controller.dart';
 import 'package:absensi_smamahardhika/app/services/location_service.dart';
 import 'package:absensi_smamahardhika/app/utils/app_colors.dart';
 import 'package:absensi_smamahardhika/app/utils/app_material.dart';
@@ -59,10 +60,13 @@ class BerandaView extends GetView<BerandaController> {
                 final diluarRadius = HomeController.diluarRadius.value;
                 final jenisGeneral = HomeController.jenisAbsenGeneral.value;
                 final jadwal = BerandaController.jadwalHariIni.value;
+                final lokasi = LokasiAbsenController.dataKoordinatLokasi;
 
                 final now = DateTime.now();
-                final jamMasuk = parseTimeSafe(jadwal?.batasJamMasuk, now);
-                final jamPulang = parseTimeSafe(jadwal?.batasJamPulang, now);
+
+                final batasMasuk = parseTimeSafe(jadwal?.batasJamMasuk, now);
+                final maxMasuk = parseTimeSafe(jadwal?.maxJamMasuk, now);
+                final batasPulang = parseTimeSafe(jadwal?.batasJamPulang, now);
 
                 final sudahAbsenMasuk = BerandaController
                         .jadwalTigaHari.firstOrNull?.absen?.statusAbsenMasuk !=
@@ -77,15 +81,10 @@ class BerandaView extends GetView<BerandaController> {
 
                 if (sudahAbsenMasuk && sudahAbsenPulang) {
                   statusInfo = "Anda sudah absen masuk & pulang hari ini.";
-                } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
+                } else if (sudahAbsenMasuk && now.isBefore(batasPulang)) {
+                  statusInfo = "Anda sudah absen masuk, tunggu waktu pulang.";
+                } else if (sudahAbsenMasuk && now.isAfter(batasPulang)) {
                   statusInfo = HomeController.catatanAbsen.value;
-                } else if (sudahAbsenMasuk && now.isAfter(jamPulang)) {
-                  statusInfo = HomeController.catatanAbsen.value;
-                } else if (now.isBefore(jamMasuk)) {
-                  statusInfo = "Belum waktu absen masuk.";
-                } else if (now.isAfter(jamMasuk) && now.isBefore(jamPulang)) {
-                  statusInfo =
-                      "Jam masuk sudah lewat, Anda akan tercatat sebagai telat.";
                 } else {
                   statusInfo = HomeController.catatanAbsen.value;
                 }
@@ -116,9 +115,14 @@ class BerandaView extends GetView<BerandaController> {
                 } else if (diluarRadius) {
                   bisaAbsenUtama = false;
                   bisaAbsenKecil = true;
-                } else if (sudahAbsenMasuk && now.isBefore(jamPulang)) {
+                } else if (sudahAbsenMasuk && now.isBefore(batasPulang)) {
                   bisaAbsenUtama = false;
                   bisaAbsenKecil = true;
+                } else if (!sudahAbsenMasuk &&
+                    now.isAfter(maxMasuk) &&
+                    now.isBefore(batasPulang)) {
+                  bisaAbsenUtama = true;
+                  bisaAbsenKecil = false;
                 } else {
                   bisaAbsenUtama = true;
                   bisaAbsenKecil = true;
@@ -185,8 +189,8 @@ class BerandaView extends GetView<BerandaController> {
 
                 String displayMsg = "";
 
-                if ((now.isAfter(jamPulang) && !sudahAbsenPulang) ||
-                    (now.isAfter(jamPulang) &&
+                if ((now.isAfter(batasPulang) && !sudahAbsenPulang) ||
+                    (now.isAfter(batasPulang) &&
                         !sudahAbsenPulang &&
                         !sudahAbsenMasuk)) {
                   displayMsg = statusInfo;
@@ -196,10 +200,11 @@ class BerandaView extends GetView<BerandaController> {
                         "Anda tidak dapat melakukan absen lagi.\n$statusInfo";
                   } else if (diluarRadius &&
                       !canAbsen &&
-                      now.isBefore(jamPulang)) {
+                      now.isBefore(batasPulang) &&
+                      lokasi.isNotEmpty) {
                     displayMsg =
                         "Anda berada di luar area absensi.\nSilahkan mendekat ke lokasi yang ditentukan dan absen sesuai jam kerja.";
-                  } else if (diluarRadius && canAbsen) {
+                  } else if (diluarRadius && canAbsen && lokasi.isNotEmpty) {
                     displayMsg =
                         "Anda berada di luar radius lokasi.\nNamun Anda masih dapat melakukan absen izin, sakit, atau dispensasi.";
                   } else if (!diluarRadius && canAbsen) {
@@ -488,9 +493,11 @@ class BerandaView extends GetView<BerandaController> {
                       AllMaterial.ubahHari(DateTime.now().toIso8601String()),
                   context),
               _fluentInfoRow(
-                  "Jam Masuk", jadwal?.batasJamMasuk ?? "Belum Ada", context),
+                  "Jam Masuk", jadwal?.batasJamMasuk ?? "-", context),
               _fluentInfoRow(
-                  "Jam Pulang", jadwal?.batasJamPulang ?? "Belum Ada", context),
+                  "Batas Masuk", jadwal?.maxJamMasuk ?? "-", context),
+              _fluentInfoRow(
+                  "Jam Pulang", jadwal?.batasJamPulang ?? "-", context),
               _fluentInfoRow("Dalam Radius",
                   HomeController.diluarRadius.value ? "Tidak" : "Ya", context),
               Obx(
@@ -498,7 +505,7 @@ class BerandaView extends GetView<BerandaController> {
                     ? _fluentInfoRow(
                         "Titik Lokasi",
                         HomeController.koordinatTerdekat.value?.namaTempat ??
-                            "",
+                            "-",
                         context)
                     : SizedBox.shrink(),
               ),
@@ -651,7 +658,9 @@ class BerandaView extends GetView<BerandaController> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    absen.absen?.status ?? "",
+                    ((absen.absen?.status ?? "") == "Dispensasi")
+                        ? "Dispen"
+                        : absen.absen?.status ?? "",
                     style: textTheme.labelMedium?.copyWith(
                       color: statusColor,
                       fontWeight: FontWeight.bold,
@@ -672,10 +681,14 @@ class BerandaView extends GetView<BerandaController> {
         return Colors.green;
       case 'izin':
         return Colors.orange;
+      case 'telat':
+        return Colors.amber;
       case 'alpa':
         return Colors.redAccent;
       case 'sakit':
         return Colors.blue;
+      case 'dispensasi':
+        return Colors.indigo;
       default:
         return Colors.grey;
     }

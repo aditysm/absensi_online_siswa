@@ -3,6 +3,7 @@ import 'package:absensi_smamahardhika/app/data/apis/api_url.dart';
 import 'package:absensi_smamahardhika/app/modules/beranda/controllers/beranda_controller.dart';
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/services/http_service.dart';
+import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ class BuatAbsenController extends GetxController {
 
   final selectedFileImage = Rx<File?>(null);
   final selectedFileDocument = Rx<File?>(null);
+  bool fromSmall = Get.arguments["fromSmall"] ?? false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -89,7 +91,7 @@ class BuatAbsenController extends GetxController {
 
       String url = _resolveAbsenUrl(jenis, jenisAbsenGeneral, isDiluarRadius);
       print(
-          "🟢 Jenis absen: $jenis | General: $jenisAbsenGeneral | Radius: $isDiluarRadius");
+          "🟢 Jenis absen: $jenis | General: $jenisAbsenGeneral | Diluar Radius: $isDiluarRadius");
       print("🌐 URL: $url");
 
       bool fromSmall = Get.arguments["fromSmall"] ?? false;
@@ -103,6 +105,7 @@ class BuatAbsenController extends GetxController {
       final Map<String, String> fields = {
         "latitude": HomeController.latitude.value.toString(),
         "longitude": HomeController.longitude.value.toString(),
+        "id_tahun_ajaran": AllMaterial.idSelectedTahun.value.toString(),
         if (noteC.text.isNotEmpty) "note": noteC.text,
         if (isDokumenAbsen && !_isJenisMasukAtauPulang(jenisStr))
           "jenis_absen":
@@ -215,11 +218,13 @@ class BuatAbsenController extends GetxController {
     if (jenis == "Pulang" || (general == "Pulang" && jenis == "TepatWaktu")) {
       return "${ApiUrl.dataPostAbsenSiswaUrl}/pulang";
     }
-    if (jenis == "Telat") {
+    if (jenis == "Telat" && !fromSmall) {
       return "${ApiUrl.dataPostAbsenSiswaUrl}/masuk-telat";
     }
+
     if (jenis == "IzinOrSakitOrDispensasi" ||
-        jenis == "IzinOrSakitOrDispensasiOrTelat") {
+        jenis == "IzinOrSakitOrDispensasiOrTelat" ||
+        fromSmall) {
       return "${ApiUrl.dataPostAbsenSiswaUrl}/izin-sakit-dispensasi";
     }
 
@@ -252,7 +257,6 @@ class BuatAbsenController extends GetxController {
     final jenisAbsenGeneral = HomeController.jenisAbsenGeneral.value;
     return j == "masuk" ||
         j == "pulang" ||
-        j == "telat" ||
         (jenisAbsenGeneral == "Masuk" && j == "tepatwaktu") ||
         (jenisAbsenGeneral == "Pulang" && j == "tepatwaktu");
   }

@@ -62,12 +62,6 @@ class LoginController extends GetxController {
       isValid = false;
     }
 
-    if (passwordC.text.trim().length < 8) {
-      passwordError.value = "Password minimal 8 karakter";
-      passwordF.requestFocus();
-      isValid = false;
-    }
-
     if (!isValid) {
       Future.delayed(Duration(milliseconds: 300));
       allError.value = "Periksa kembali input Anda.";

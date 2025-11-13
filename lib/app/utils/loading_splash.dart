@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:absensi_smamahardhika/app/controllers/permission_controller.dart';
 import 'package:absensi_smamahardhika/app/utils/app_colors.dart';
 import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
@@ -29,24 +30,28 @@ class LoadingSplashView extends StatefulWidget {
 }
 
 class _LoadingSplashViewState extends State<LoadingSplashView>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final Location locationService = Location();
   final Connectivity connectivity = Connectivity();
+  final watcher = PermissionWatcher();
 
   bool _hasResumed = false;
   bool _hasCompleted = false;
   Timer? _checkOverlayTimer;
+  late final AnimationController _lottieController;
 
   @override
   void initState() {
     super.initState();
+    watcher.startWatching(context);
     WidgetsBinding.instance.addObserver(this);
+
+    _lottieController = AnimationController(vsync: this);
     _startLoadingSequence();
   }
 
   Future<void> _startLoadingSequence() async {
     await Future.delayed(widget.duration);
-
     if (!mounted || _hasCompleted) return;
 
     _checkOverlayTimer =
@@ -61,6 +66,7 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
 
       if (!hasConnection) {
         timer.cancel();
+        _pauseLottie();
         _showNoInternetSheet();
         return;
       }
@@ -71,6 +77,18 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
         await widget.onCompleted();
       }
     });
+  }
+
+  void _pauseLottie() {
+    if (_lottieController.isAnimating) {
+      _lottieController.stop();
+    }
+  }
+
+  void _resumeLottie() {
+    if (!_lottieController.isAnimating) {
+      _lottieController.repeat();
+    }
   }
 
   void _showNoInternetSheet() {
@@ -103,6 +121,7 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
                 final connected = result.first != ConnectivityResult.none;
                 if (connected) {
                   Get.back();
+                  _resumeLottie();
                   _startLoadingSequence();
                 } else {
                   ToastService.show(
@@ -116,14 +135,7 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
         ),
       ),
       isScrollControlled: true,
-    );
-  }
-
-  @override
-  void dispose() {
-    _checkOverlayTimer?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+    ).whenComplete(_resumeLottie);
   }
 
   @override
@@ -139,6 +151,15 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
         }
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _checkOverlayTimer?.cancel();
+    watcher.stopWatching();
+    WidgetsBinding.instance.removeObserver(this);
+    _lottieController.dispose();
+    super.dispose();
   }
 
   @override
@@ -160,7 +181,12 @@ class _LoadingSplashViewState extends State<LoadingSplashView>
               children: [
                 Lottie.asset(
                   widget.animationAsset,
-                  repeat: true,
+                  controller: _lottieController,
+                  onLoaded: (composition) {
+                    _lottieController
+                      ..duration = composition.duration
+                      ..repeat();
+                  },
                 ),
                 const SizedBox(height: 24),
                 Text(

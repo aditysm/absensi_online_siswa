@@ -32,6 +32,7 @@ class RiwayatAbsenController extends GetxController {
       currentPage.value = 1;
       hasMore.value = true;
       paginatedData.clear();
+      isLoadingFirst.value = true;
     }
 
     if (!hasMore.value || isLoading.value) return;
@@ -76,7 +77,7 @@ class RiwayatAbsenController extends GetxController {
 
   Future<void> onRefreshData() async {
     try {
-      await getAbsenSiswa();
+      await getAbsenSiswa(reset: true);
     } catch (e) {
       print(e);
     }

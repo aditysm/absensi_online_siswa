@@ -81,6 +81,7 @@ class Orangtua {
   String? alamat;
   String? jenisKelamin;
   String? noTelepon;
+  String? email;
 
   Orangtua({
     this.id,
@@ -88,6 +89,7 @@ class Orangtua {
     this.alamat,
     this.jenisKelamin,
     this.noTelepon,
+    this.email,
   });
 
   factory Orangtua.fromJson(Map<String, dynamic> json) => Orangtua(
@@ -96,6 +98,7 @@ class Orangtua {
         alamat: json["alamat"],
         jenisKelamin: json["jenis_kelamin"],
         noTelepon: json["no_telepon"],
+        email: json["email"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -104,5 +107,6 @@ class Orangtua {
         "alamat": alamat,
         "jenis_kelamin": jenisKelamin,
         "no_telepon": noTelepon,
+        "email": email,
       };
 }

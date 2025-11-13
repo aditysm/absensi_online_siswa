@@ -70,74 +70,50 @@ class HomeController extends GetxController {
 
   static final Map<String, Map<String, dynamic>> dataTahun = {};
   static Future<void> fetchData({int? d}) async {
-    final int usedIndex = d ?? HomeController.selectedIndex.value;
+    if (ta.value != AllMaterial.selectedTahun.value) {
+      print("Tahun ajaran berubah. Reset semua data...");
 
-    if (AllMaterial.role.value == "admin") {
-      if (ta.value != AllMaterial.selectedTahun.value) {
-        print("Tahun ajaran berubah. Reset semua data...");
+      HomeController.dataKelasSiswa.clear();
+      HomeController.dataSiswa.value = null;
+      BerandaController.jadwalHariIni.value = null;
+      BerandaController.jadwalTigaHari.clear();
+      JadwalAbsenController.dataJadwal.clear();
+      RiwayatAbsenController.filteredData.clear();
+      RiwayatAbsenController.paginatedData.clear();
 
-        HomeController.dataKelasSiswa.clear();
-        HomeController.dataSiswa.value = null;
-        BerandaController.jadwalHariIni.value = null;
-        BerandaController.jadwalTigaHari.clear();
-        JadwalAbsenController.dataJadwal.clear();
-        RiwayatAbsenController.filteredData.clear();
-        RiwayatAbsenController.paginatedData.clear();
-
-        ta.value = AllMaterial.selectedTahun.value;
-      }
+      ta.value = AllMaterial.selectedTahun.value;
     }
 
-    switch (usedIndex) {
-      case 0:
-        if (HomeController.dataKelasSiswa.isEmpty) {
-          await HomeController.getKelasSiswa();
-        }
-        if (HomeController.dataSiswa.value == null) {
-          await HomeController.getDataSiswa();
-        }
+    if (HomeController.dataKelasSiswa.isEmpty) {
+      await HomeController.getKelasSiswa();
+    }
+    if (HomeController.dataSiswa.value == null) {
+      await HomeController.getDataSiswa(fromTahunAjar: true);
+    }
+    if (BerandaController.jadwalHariIni.value == null) {
+      await BerandaController.getDataJadwalHariIni();
+    }
 
-        if (BerandaController.jadwalHariIni.value == null) {
-          await BerandaController.getDataJadwalHariIni();
-        }
+    if (BerandaController.jadwalTigaHari.isEmpty) {
+      await BerandaController.getAbsenSiswa();
+    }
 
-        if (BerandaController.jadwalTigaHari.isEmpty) {
-          await BerandaController.getAbsenSiswa();
-        }
+    if (JadwalAbsenController.dataJadwal.isEmpty) {
+      await JadwalAbsenController.getDataJadwalAbsen();
+    }
 
-        break;
+    if (LokasiAbsenController.dataKoordinatLokasi.isEmpty) {
+      await LokasiAbsenController.getKoordinatLokasi();
+    }
 
-      case 1:
-        if (JadwalAbsenController.dataJadwal.isEmpty) {
-          await JadwalAbsenController.getDataJadwalAbsen();
-        }
-
-        break;
-
-      case 2:
-        if (LokasiAbsenController.dataKoordinatLokasi.isEmpty) {
-          await LokasiAbsenController.getKoordinatLokasi();
-        }
-
-      case 3:
-        if (RiwayatAbsenController.paginatedData.isEmpty ||
-            RiwayatAbsenController.filteredData.isEmpty) {
-          await RiwayatAbsenController.getAbsenSiswa();
-        }
-
-        break;
-      case 4:
-        if (HomeController.dataSiswa.value == null) {
-          await HomeController.getDataSiswa();
-        }
-        break;
-
-      default:
-        print("Index tidak dikenali: $usedIndex");
+    if (RiwayatAbsenController.paginatedData.isEmpty ||
+        RiwayatAbsenController.filteredData.isEmpty) {
+      await RiwayatAbsenController.getAbsenSiswa();
     }
 
     print("Tahun ajaran aktif: ${ta.value}");
 
+    HomeController.isLoading.value = false;
     Get.find<HomeController>().update();
   }
 
@@ -171,13 +147,14 @@ class HomeController extends GetxController {
 
         if (AllMaterial.selectedTahun.value.isEmpty &&
             HomeController.dataTahun.isNotEmpty) {
-          final lastTahunKey = HomeController.dataTahun.keys.last;
+          final lastTahunKey = HomeController.dataTahun.keys.first;
           AllMaterial.selectedTahun.value = lastTahunKey;
           HomeController.ta.value = lastTahunKey;
 
           final tahunData = HomeController.dataTahun[lastTahunKey];
           if (tahunData != null && tahunData['id'] != null) {
             idTahun.value = tahunData['id'];
+            AllMaterial.idSelectedTahun.value = idTahun.value;
           }
 
           print("idTahun.value: ${idTahun.value}");
@@ -194,7 +171,7 @@ class HomeController extends GetxController {
     AllMaterial.selectedTahun.value = year;
   }
 
-  static Future<void> getDataSiswa() async {
+  static Future<void> getDataSiswa({bool fromTahunAjar = false}) async {
     isLoading.value = true;
     try {
       final response = await HttpService.request(
@@ -220,6 +197,8 @@ class HomeController extends GetxController {
       print(e);
       isLoading.value = false;
     }
+
+    if (fromTahunAjar) isLoading.value = false;
   }
 
   static Future<void> getKelasSiswa() async {
@@ -268,6 +247,7 @@ class HomeController extends GetxController {
         body: {
           "latitude": latitude ?? 0.0,
           "longitude": longitude ?? 0.0,
+          "id_tahun_ajaran": AllMaterial.idSelectedTahun.value
         },
       );
 

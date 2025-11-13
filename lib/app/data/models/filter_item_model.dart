@@ -76,7 +76,7 @@ class FilterItem<T> {
 
           return DropdownButtonFormField<T>(
             decoration: inputDecoration(label, error, context),
-            initialValue: safeValue,
+            value: safeValue,
             items: menuItems ??
                 validItems
                     .map((opt) => DropdownMenuItem<T>(

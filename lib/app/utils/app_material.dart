@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:absensi_smamahardhika/app/data/models/list_data_absen_siswa_model.dart';
 import 'package:absensi_smamahardhika/app/modules/histori_absen/views/histori_absen_view.dart';
+import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/utils/app_colors.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ abstract class AllMaterial {
   static var box = GetStorage();
 
   static var selectedTahun = "".obs;
+  static var idSelectedTahun = 0.obs;
   static var role = "".obs;
   static var token = "".obs;
   static var idSiswa = 0.obs;
@@ -50,6 +52,8 @@ abstract class AllMaterial {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
+              width: Get.width,
+              height: Get.height,
               color: Colors.black,
               child: Stack(
                 children: [
@@ -131,12 +135,19 @@ abstract class AllMaterial {
     if (timeString == null || timeString.isEmpty) return "-";
 
     try {
-      final parsedTime = DateFormat("HH:mm:ss.S").parse(timeString);
+      final parsedTime = DateFormat("HH:mm:ss").parse(timeString);
       return DateFormat('HH:mm').format(parsedTime);
     } catch (e) {
       print("Gagal parse waktu: $e");
       return "-";
     }
+  }
+
+  static void openMap(double latitude, double longitude) async {
+    final Uri url =
+        Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   static String ubahTanggaldanJam(String dateTimeString) {
@@ -215,6 +226,20 @@ abstract class AllMaterial {
           "isMasuk": isChoice,
         },
       );
+    }
+  }
+
+  static void executeExit() async {
+    try {
+      if (Platform.isAndroid) {
+        SystemNavigator.pop();
+      } else if (Platform.isIOS) {
+        exit(0);
+      } else {
+        exit(0);
+      }
+    } catch (e) {
+      exit(0);
     }
   }
 
@@ -439,13 +464,18 @@ abstract class AllMaterial {
                 backgroundColor:
                     isDarkMode.value ? null : AppColors.lightPrimary,
               ),
-              onPressed: () {
+              onPressed: () async {
                 String umpan = umpanController.text.trim();
                 double nilaiRating = rating.value;
 
                 if (umpan.isNotEmpty && nilaiRating > 0) {
                   Get.back();
-                  ToastService.show("Umpan Balik Anda telah dikirim.");
+                  await openFeedbackEmail(
+                      namaPengguna:
+                          HomeController.dataSiswa.value?.data?.nama ?? "",
+                      isiUmpan: umpan,
+                      rating: nilaiRating);
+                  ToastService.show("Umpan Anda berhasil dikirim!");
                 } else {
                   umpanError.value =
                       "Isi umpan atau beri rating terlebih dahulu";
@@ -462,6 +492,38 @@ abstract class AllMaterial {
         );
       },
     );
+  }
+
+  static Future<void> openFeedbackEmail({
+    required String namaPengguna,
+    required String isiUmpan,
+    required double rating,
+  }) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'developer.gvinum@gmail.com',
+      queryParameters: {
+        'subject': 'Umpan Balik dari $namaPengguna',
+        'body': '''
+Halo Tim Pengembang,
+
+Saya ingin memberikan umpan balik terhadap aplikasi Absensi Smahardhika.
+
+⭐ Rating: $rating / 5
+
+📝 Pesan:
+$isiUmpan
+
+Terima kasih.
+Salam,
+$namaPengguna
+'''
+      },
+    );
+
+    if (!await launchUrl(emailUri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Gagal membuka aplikasi email.');
+    }
   }
 
   static Widget textField({

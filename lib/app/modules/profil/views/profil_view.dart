@@ -29,12 +29,17 @@ class ProfilView extends GetView<ProfilController> {
           }
 
           if (profil == null) {
-            return ListView(
-              children: [
-                const Center(
-                  child: Text('Data profil tidak ditemukan'),
-                ),
-              ],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return ListView(
+                  children: [
+                    SizedBox(
+                      height: constraints.maxHeight,
+                      child: _buildEmptyState(context),
+                    ),
+                  ],
+                );
+              },
             );
           }
 
@@ -122,12 +127,20 @@ class ProfilView extends GetView<ProfilController> {
                   "Nama Orang Tua",
                   profil.data?.orangtua?.nama ?? "",
                 ),
-                _profilItem(
-                  context,
-                  CupertinoIcons.phone,
-                  "Kontak Orang Tua",
-                  profil.data?.orangtua?.noTelepon ?? "",
-                ),
+                if (profil.data?.orangtua?.noTelepon != null)
+                  _profilItem(
+                    context,
+                    CupertinoIcons.phone,
+                    "Kontak Orang Tua",
+                    profil.data?.orangtua?.noTelepon ?? "",
+                  ),
+                if (profil.data?.orangtua?.email != null)
+                  _profilItem(
+                    context,
+                    Icons.email_outlined,
+                    "Email Orang Tua",
+                    profil.data?.orangtua?.email ?? "",
+                  ),
               ],
             ),
           );
@@ -136,7 +149,35 @@ class ProfilView extends GetView<ProfilController> {
     );
   }
 
-  /// 🔹 Item profil normal
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off_outlined,
+              color: colorScheme.onSurface.withOpacity(0.4), size: 80),
+          const SizedBox(height: 12),
+          Text(
+            "Data Profil tidak ditemukan",
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.6),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Data profil akan tampil di sini.",
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _profilItem(
       BuildContext context, IconData icon, String label, String value) {
     final colorScheme = Theme.of(context).colorScheme;

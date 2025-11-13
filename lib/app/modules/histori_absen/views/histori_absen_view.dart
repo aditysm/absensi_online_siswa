@@ -47,7 +47,7 @@ class HistoriAbsenView extends GetView<HistoriAbsenController> {
         // actions: [
         //   IconButton(
         //     onPressed: () {
-        //       // TODO: Share absensi
+        //       // TOD Share absensi
         //     },
         //     icon: const Icon(Icons.share),
         //     tooltip: "Bagikan Absen",
@@ -274,8 +274,11 @@ class HistoriAbsenView extends GetView<HistoriAbsenController> {
           width: 40,
           height: 40,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-              const Icon(Icons.broken_image, size: 40),
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.broken_image,
+            size: 40,
+            color: colorScheme.primary,
+          ),
         ),
       );
     } else if (isClickable) {
@@ -376,10 +379,14 @@ class HistoriAbsenView extends GetView<HistoriAbsenController> {
         return Colors.green;
       case 'izin':
         return Colors.orange;
+      case 'telat':
+        return Colors.amber;
       case 'alpa':
         return Colors.redAccent;
       case 'sakit':
         return Colors.blue;
+      case 'dispensasi':
+        return Colors.indigo;
       default:
         return Colors.grey;
     }

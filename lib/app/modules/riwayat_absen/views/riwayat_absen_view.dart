@@ -18,38 +18,52 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
 
     return Scaffold(
       body: RefreshIndicator(
-          onRefresh: controller.onRefreshData,
-          color: colorScheme.primary,
-          child: Obx(() {
-            final data = RiwayatAbsenController.isFiltering.value
+        onRefresh: controller.onRefreshData,
+        color: colorScheme.primary,
+        child: Obx(
+          () {
+            final isFiltering = RiwayatAbsenController.isFiltering.value;
+            final isLoadingFirst = RiwayatAbsenController.isLoadingFirst.value;
+            final data = isFiltering
                 ? RiwayatAbsenController.filteredData
                 : RiwayatAbsenController.paginatedData;
 
-            if (RiwayatAbsenController.isLoadingFirst.value && data.isEmpty) {
+            if (isLoadingFirst && data.isEmpty) {
               return _buildSkeletonList(context);
             }
 
             if (data.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      child: _buildEmptyState(context)),
-                ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return ListView(
+                    children: [
+                      SizedBox(
+                        height: constraints.maxHeight,
+                        child: _buildEmptyState(context),
+                      ),
+                    ],
+                  );
+                },
               );
             }
 
-            final sortedData = [...data];
-            sortedData.sort((a, b) {
-              final aDate = a.absen?.tanggal ?? DateTime(1970);
-              final bDate = b.absen?.tanggal ?? DateTime(1970);
-              return bDate.compareTo(aDate);
-            });
+            if (isFiltering) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: Platform.isAndroid ? 60 : 100),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    return _buildRiwayatItem(context, data[index]);
+                  },
+                ),
+              );
+            }
 
             return NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
-                if (!RiwayatAbsenController.isFiltering.value &&
-                    RiwayatAbsenController.hasMore.value &&
+                if (RiwayatAbsenController.hasMore.value &&
                     !RiwayatAbsenController.isLoading.value &&
                     scrollInfo.metrics.pixels ==
                         scrollInfo.metrics.maxScrollExtent) {
@@ -62,11 +76,11 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-                  itemCount: sortedData.length +
+                  itemCount: data.length +
                       (RiwayatAbsenController.hasMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index < sortedData.length) {
-                      return _buildRiwayatItem(context, sortedData[index]);
+                    if (index < data.length) {
+                      return _buildRiwayatItem(context, data[index]);
                     } else {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -81,7 +95,9 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
                 ),
               ),
             );
-          })),
+          },
+        ),
+      ),
     );
   }
 
@@ -109,7 +125,7 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
           Text(
             isFilter
                 ? "Coba cari lagi dengan kata kunci lain"
-                : "Histori kehadiran Anda akan muncul di sini",
+                : "Histori kehadiran Anda akan tampil di sini",
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -268,7 +284,9 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    absen.absen?.status ?? "",
+                    ((absen.absen?.status ?? "") == "Dispensasi")
+                        ? "Dispen"
+                        : absen.absen?.status ?? "",
                     style: textTheme.labelMedium?.copyWith(
                       color: statusColor,
                       fontWeight: FontWeight.bold,
@@ -289,10 +307,14 @@ class RiwayatAbsenView extends GetView<RiwayatAbsenController> {
         return Colors.green;
       case 'izin':
         return Colors.orange;
+      case 'telat':
+        return Colors.amber;
       case 'alpa':
         return Colors.redAccent;
       case 'sakit':
         return Colors.blue;
+      case 'dispensasi':
+        return Colors.indigo;
       default:
         return Colors.grey;
     }

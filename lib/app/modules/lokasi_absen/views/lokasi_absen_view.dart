@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:absensi_smamahardhika/app/data/models/list_koordinat_lokasi.dart';
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/services/location_service.dart';
+import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -50,8 +51,10 @@ class LokasiAbsenView extends GetView<LokasiAbsenController> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                 itemCount: data.length,
-                itemBuilder: (context, index) =>
-                    _buildJadwalCard(context, data[index]),
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _buildJadwalCard(context, data[index]),
+                ),
               ),
             );
           },
@@ -79,7 +82,7 @@ class LokasiAbsenView extends GetView<LokasiAbsenController> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Lokasi absensi akan muncul di sini.",
+            "Lokasi absensi akan tampil di sini.",
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -217,59 +220,68 @@ class LokasiAbsenView extends GetView<LokasiAbsenController> {
         lat2: lokasi.latitude ?? 0.0,
         lon2: lokasi.longitude ?? 0.0);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.location_on_outlined,
-                    color: accentColor,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    maxLines: 2,
-                    namaDisplay,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface,
-                      fontSize: 16,
+    return Material(
+      borderRadius: BorderRadius.circular(16),
+      color: colorScheme.surface,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: (lokasi.latitude == null) || (lokasi.longitude == null)
+            ? null
+            : () {
+                AllMaterial.openMap(
+                    lokasi.latitude ?? 0.0, lokasi.longitude ?? 0.0);
+              },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: accentColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.location_on_outlined,
+                      color: accentColor,
+                      size: 20,
                     ),
                   ),
-                ),
-                SizedBox(width: 6),
-                _buildStatusChip(isActive),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _fluentInfoRow("Radius Absen",
-                "${lokasi.radiusAbsenMeter ?? "0.0"} meter", context),
-            _fluentInfoRow("Jarak ke Lokasi", jarakKeLokasi, context),
-          ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      maxLines: 2,
+                      namaDisplay,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  _buildStatusChip(isActive),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _fluentInfoRow("Radius Absen",
+                  "${lokasi.radiusAbsenMeter ?? "0.0"} meter", context),
+              _fluentInfoRow("Jarak ke Lokasi", jarakKeLokasi, context),
+            ],
+          ),
         ),
       ),
     );

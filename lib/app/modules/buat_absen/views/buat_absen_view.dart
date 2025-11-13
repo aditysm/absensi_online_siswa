@@ -190,7 +190,7 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
 
                           return DropdownButtonFormField<
                               StatusAbsenMasukKeluarEnum>(
-                            initialValue: selectedValue,
+                            value: selectedValue,
                             items: options
                                 .map(
                                   (e) => DropdownMenuItem(
@@ -236,6 +236,7 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                             title: 'Catatan',
                             items: [
                               TextField(
+                                textInputAction: TextInputAction.done,
                                 focusNode: controller.noteF,
                                 controller: controller.noteC,
                                 maxLines: 3,
@@ -261,8 +262,10 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
                         }
                       },
                     ),
-                    if (_isJenisMasukAtauPulang(jenisAbsen) &&
-                        !HomeController.diluarRadius.value) ...[
+                    if ((_isJenisMasukAtauPulang(jenisAbsen) ||
+                            jenisAbsen == "Telat") &&
+                        !HomeController.diluarRadius.value &&
+                        !fromSmall) ...[
                       _infoSection(
                         context,
                         title: 'Upload Gambar',
@@ -460,7 +463,8 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
         padding: const EdgeInsets.all(16),
         child: Obx(
           () {
-            final isMasukPulang = _isJenisMasukAtauPulang(jenisAbsen);
+            final isMasukPulang = _isJenisMasukAtauPulang(jenisAbsen) ||
+                (jenisAbsen == "Telat" && !fromSmall);
             final hasFile = isMasukPulang
                 ? controller.selectedFileImage.value != null
                 : controller.selectedFileDocument.value != null;
@@ -518,7 +522,6 @@ class BuatAbsenView extends GetView<BuatAbsenController> {
     final jenisAbsenGeneral = HomeController.jenisAbsenGeneral.value;
     return j == "masuk" ||
         j == "pulang" ||
-        j == "telat" ||
         (jenisAbsenGeneral == "Masuk" && j == "tepatwaktu") ||
         (jenisAbsenGeneral == "Pulang" && j == "tepatwaktu");
   }
