@@ -42,7 +42,7 @@ class HistoriAbsenView extends GetView<HistoriAbsenController> {
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
-        ),
+        ),  
         iconTheme: const IconThemeData(color: Colors.white),
         // actions: [
         //   IconButton(

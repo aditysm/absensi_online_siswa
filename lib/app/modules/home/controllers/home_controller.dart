@@ -20,8 +20,8 @@ import 'package:location/location.dart';
 class HomeController extends GetxController {
   final List<String> tahunAjarList = [];
   static var ta = "".obs;
-  static var selectedIndex = 0.obs;
   static var idTahun = 0.obs;
+  static var selectedIndex = 0.obs;
   static var latitude = Rx<double?>(null);
   static var longitude = Rx<double?>(null);
   static var isLoading = false.obs;

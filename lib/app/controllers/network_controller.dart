@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:absensi_smamahardhika/app/utils/app_material.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
@@ -18,27 +19,34 @@ class NetworkController extends GetxController {
   void _startMonitoring() {
     Future.delayed(const Duration(seconds: 2), _checkInitialConnection);
 
-    _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> result) async {
-      if (!_initialCheckDone) return;
+    _connectivity.onConnectivityChanged.listen(
+      (List<ConnectivityResult> results) async {
+        if (!_initialCheckDone) return;
 
-      if (result.first == ConnectivityResult.none) {
-        _handleDisconnected();
-      } else {
-        final hasConnection = await _checkInternetConnection();
-        hasConnection ? _handleConnected() : _handleDisconnected();
-      }
-    });
+        final hasNetwork = results.any((r) => r != ConnectivityResult.none);
+
+        if (!hasNetwork) {
+          _handleDisconnected();
+          return;
+        }
+
+        final hasInternet = await _checkInternetConnection();
+        hasInternet ? _handleConnected() : _handleDisconnected();
+      },
+    );
   }
 
   Future<void> _checkInitialConnection() async {
     try {
-      final result = await _connectivity.checkConnectivity();
-      if (result.first == ConnectivityResult.none) {
+      final results = await _connectivity.checkConnectivity();
+
+      final hasNetwork = results.any((r) => r != ConnectivityResult.none);
+
+      if (!hasNetwork) {
         _handleDisconnected();
       } else {
-        final hasConnection = await _checkInternetConnection();
-        if (hasConnection) {
+        final hasInternet = await _checkInternetConnection();
+        if (hasInternet) {
           _handleConnected();
         } else {
           await Future.delayed(const Duration(seconds: 2));
@@ -53,7 +61,7 @@ class NetworkController extends GetxController {
 
   Future<bool> _checkInternetConnection() async {
     try {
-      final result = await InternetAddress.lookup('example.com').timeout(
+      final result = await InternetAddress.lookup('google.com').timeout(
         const Duration(seconds: 3),
       );
       return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
@@ -67,8 +75,12 @@ class NetworkController extends GetxController {
   void _handleConnected() {
     if (!isConnected.value) {
       isConnected.value = true;
-      if (Get.isBottomSheetOpen == true) Get.back();
-      ToastService.show('Internet aktif kembali');
+
+      if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      ToastService.show("Internet kembali aktif");
     }
   }
 
@@ -76,7 +88,7 @@ class NetworkController extends GetxController {
     if (isConnected.value) {
       isConnected.value = false;
       _showNoInternetSheet();
-      ToastService.show('Tidak ada koneksi internet');
+      ToastService.show("Tidak ada koneksi internet");
     }
   }
 
@@ -86,51 +98,68 @@ class NetworkController extends GetxController {
       return;
     }
 
-    if (Get.isBottomSheetOpen == true) return;
+    if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) return;
 
     try {
-      Get.bottomSheet(
-        isDismissible: false,
-        enableDrag: false,
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(Get.context!).cardColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      if (!AllMaterial.isDesktop) {
+        Get.bottomSheet(
+          isDismissible: false,
+          enableDrag: false,
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(Get.context!).cardColor,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: _sheetContent(),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off, size: 50, color: Colors.redAccent),
-              const SizedBox(height: 10),
-              const Text(
-                "Tidak ada koneksi internet",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Pastikan perangkat Anda tersambung ke Wi-Fi atau data seluler.",
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final hasConnection = await _checkInternetConnection();
-                  if (hasConnection) {
-                    _handleConnected();
-                  } else {
-                    ToastService.show(
-                        "Gagal. Masih belum ada koneksi internet.");
-                  }
-                },
-                child: const Text("Coba Lagi"),
-              ),
-            ],
+        );
+      } else {
+        Get.defaultDialog(
+          barrierDismissible: false,
+          title: "",
+          middleText: "",
+          titlePadding: EdgeInsets.zero,
+          content: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _sheetContent(),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       debugPrint("⚠️ Gagal menampilkan bottom sheet: $e");
     }
+  }
+
+  Widget _sheetContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.wifi_off, size: 50, color: Colors.redAccent),
+        const SizedBox(height: 10),
+        const Text(
+          "Tidak ada koneksi internet",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "Pastikan perangkat Anda tersambung ke Wi-Fi atau data seluler.",
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () async {
+            final hasConnection = await _checkInternetConnection();
+            if (hasConnection) {
+              _handleConnected();
+            } else {
+              ToastService.show("Gagal. Masih belum ada koneksi internet.");
+            }
+          },
+          child: const Text("Coba Lagi"),
+        ),
+      ],
+    );
   }
 }

@@ -5,6 +5,7 @@ import 'package:absensi_smamahardhika/app/modules/histori_absen/views/histori_ab
 import 'package:absensi_smamahardhika/app/modules/home/controllers/home_controller.dart';
 import 'package:absensi_smamahardhika/app/utils/app_colors.dart';
 import 'package:absensi_smamahardhika/app/utils/toast_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -31,6 +32,11 @@ abstract class AllMaterial {
   }
 
   static final _confirmEnabled = false.obs;
+
+  static bool get isDesktop {
+    if (kIsWeb) return false;
+    return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  }
 
   static void showImagePopup(String imageUrl, {String? title}) {
     if (imageUrl.isEmpty) {
